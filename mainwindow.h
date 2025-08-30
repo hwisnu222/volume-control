@@ -6,6 +6,7 @@
 #include <QStringList>
 #include <QSlider>
 #include <QLabel>
+#include <QComboBox>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -32,5 +33,6 @@ private:
     void getName();
     void setSystemVolume(int value);
     int getSystemVolume();
+    void getDevices();
 };
 #endif // MAINWINDOW_H

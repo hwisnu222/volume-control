@@ -1,7 +1,13 @@
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
+#include <iostream>
+#include <QJsonDocument>
+#include <QJsonValue>
+#include <QJsonObject>
 
-#define DEFAULT_VOLUME 30
+using namespace std;
+
+#define DEFAULT_VOLUME 10
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -20,11 +26,13 @@ MainWindow::MainWindow(QWidget *parent)
     // set volume value to label
     ui->label->setText(QString::number(value) + "%");
     // update label button
-    if(value == 0){
+    if(value < 1){
         ui->pushButton->setText("UnMute");
     }else{
         ui->pushButton->setText("Mute");
     }
+
+    getDevices();
 
 
     // add event valueChanged for slider
@@ -44,7 +52,7 @@ void MainWindow::changeVolume(){
     ui->label->setText(QString::number(value) + "%");
 
     // update label button
-    if(value == 0){
+    if(value < 1){
         ui->pushButton->setText("UnMute");
     }else{
         ui->pushButton->setText("Mute");
@@ -55,17 +63,20 @@ void MainWindow::changeVolume(){
 }
 
 void MainWindow::toggleMute(){
-    if (ui->pushButton->text().toStdString() == "Mute"){
+    int v_level = ui->horizontalSlider->value();
+
+    if (v_level < 1){
         ui->pushButton->setText("UnMute");
-        ui->horizontalSlider->setValue(0);
-        ui->label->setText(QString::number(0) + "%");
+        ui->horizontalSlider->setValue(DEFAULT_VOLUME);
+        ui->label->setText(QString::number(DEFAULT_VOLUME) + "%");
 
         setSystemVolume(DEFAULT_VOLUME);
     }else{
         ui->pushButton->setText("Mute");
-        ui->horizontalSlider->setValue(DEFAULT_VOLUME);
-        ui->label->setText(QString::number(DEFAULT_VOLUME) + "%");
-          setSystemVolume(0);
+        ui->horizontalSlider->setValue(0);
+        ui->label->setText(QString::number(0) + "%");
+
+        setSystemVolume(0);
     }
 
 }
@@ -88,4 +99,25 @@ int MainWindow::getSystemVolume()
         if (ok) return volume;
     }
     return DEFAULT_VOLUME;
+}
+
+void MainWindow::getDevices(){
+    QProcess process;
+    process.start("pactl", {"-f", "json", "list"});
+    process.waitForFinished();
+    QByteArray out = process.readAllStandardOutput();
+    // cout<<json.toStdString()<<endl;
+
+    QJsonDocument json = QJsonDocument::fromJson(out);
+    QJsonValue modules = json["modules"];
+
+    QStringList lists;
+    // QByteArray m = json["modules"];
+
+    for(int i=0;i<modules.size();i++){
+        lists.append(modules[i].get("name"));
+    }
+
+
+    ui->comboBox->addItems(lists);
 }
