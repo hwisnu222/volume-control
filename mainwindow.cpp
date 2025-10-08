@@ -1,13 +1,21 @@
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
 #include <iostream>
+#include <string>
 #include <QJsonDocument>
 #include <QJsonValue>
 #include <QJsonObject>
+#include <QJsonArray>
+#include <QDebug>
 
 using namespace std;
 
 #define DEFAULT_VOLUME 10
+
+struct volume_lvl {
+    QString labl;
+    int percent;
+};
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -26,59 +34,20 @@ MainWindow::MainWindow(QWidget *parent)
     // set volume value to label
     ui->label->setText(QString::number(value) + "%");
     // update label button
-    if(value < 1){
-        ui->pushButton->setText("UnMute");
-    }else{
-        ui->pushButton->setText("Mute");
-    }
+
+    QString labl = value < 1 ? "UnMute" : "Mute";
+    ui->pushButton->setText(labl);
 
     getDevices();
 
-
     // add event valueChanged for slider
-    connect(ui->horizontalSlider, &QSlider::valueChanged, this, &MainWindow::changeVolume);
-    connect(ui->pushButton, &QPushButton::clicked, this, &MainWindow::toggleMute);
+    // connect(ui->comboBox, &QComboBox::highlighted, this, &MainWindow::setOutput);
 
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
-}
-
-void MainWindow::changeVolume(){
-    // handle volume is change
-    int value = ui->horizontalSlider->value();
-    ui->label->setText(QString::number(value) + "%");
-
-    // update label button
-    if(value < 1){
-        ui->pushButton->setText("UnMute");
-    }else{
-        ui->pushButton->setText("Mute");
-    }
-
-    setSystemVolume(value);
-
-}
-
-void MainWindow::toggleMute(){
-    int v_level = ui->horizontalSlider->value();
-
-    if (v_level < 1){
-        ui->pushButton->setText("UnMute");
-        ui->horizontalSlider->setValue(DEFAULT_VOLUME);
-        ui->label->setText(QString::number(DEFAULT_VOLUME) + "%");
-
-        setSystemVolume(DEFAULT_VOLUME);
-    }else{
-        ui->pushButton->setText("Mute");
-        ui->horizontalSlider->setValue(0);
-        ui->label->setText(QString::number(0) + "%");
-
-        setSystemVolume(0);
-    }
-
 }
 
 void MainWindow::setSystemVolume(int value)
@@ -106,18 +75,77 @@ void MainWindow::getDevices(){
     process.start("pactl", {"-f", "json", "list"});
     process.waitForFinished();
     QByteArray out = process.readAllStandardOutput();
-    // cout<<json.toStdString()<<endl;
 
+    // convert stdout to json document
     QJsonDocument json = QJsonDocument::fromJson(out);
-    QJsonValue modules = json["modules"];
+    QJsonObject root = json.object();
+    QJsonArray ports = root["sinks"][0]["ports"].toArray();
+    this->ports = ports;
+    // QJsonArray ports = sources["ports"].toArray();
 
     QStringList lists;
-    // QByteArray m = json["modules"];
 
-    for(int i=0;i<modules.size();i++){
-        lists.append(modules[i].get("name"));
+    for(const QJsonValue &val : ports){
+        QJsonObject obj = val.toObject();
+        lists.append(obj["description"].toString());
     }
 
 
     ui->comboBox->addItems(lists);
 }
+
+void MainWindow::setOutput(int idx){
+
+
+}
+
+void MainWindow::on_pushButton_clicked()
+{
+    qDebug("Volume is changed");
+    volume_lvl v_lvl;
+    int v_level = ui->horizontalSlider->value();
+
+    if (v_level < 1){
+        v_lvl.labl = "UnMute";
+        v_lvl.percent = DEFAULT_VOLUME;
+    }else{
+        v_lvl.labl = "Mute";
+        v_lvl.percent = 0;
+    }
+
+    ui->pushButton->setText(v_lvl.labl);
+    ui->horizontalSlider->setValue(v_lvl.percent);
+    ui->label->setText(QString::number(v_lvl.percent) + "%");
+    setSystemVolume(v_lvl.percent);
+}
+
+
+void MainWindow::on_horizontalSlider_valueChanged(int value)
+{
+    // handle volume is change
+    ui->label->setText(QString::number(value) + "%");
+
+    // update label button
+    if(value < 1){
+        ui->pushButton->setText("UnMute");
+    }else{
+        ui->pushButton->setText("Mute");
+    }
+
+    setSystemVolume(value);
+}
+
+
+void MainWindow::on_comboBox_highlighted(int idx)
+{
+    QJsonArray ports = this->ports;
+    QJsonObject p_selct = ports[idx].toObject();
+
+    // QProcess process;
+    // process.start("pactl", {"set-sink-port", idx});
+    // process.waitForFinished();
+
+
+    cout<<"ports: "<<p_selct["description"].toString().toStdString()<<endl;
+}
+

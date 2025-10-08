@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>412</width>
-    <height>176</height>
+    <height>195</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -133,6 +133,15 @@
         <red>0</red>
         <green>0</green>
         <blue>0</blue>
+       </color>
+      </brush>
+     </colorrole>
+     <colorrole role="Highlight">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>198</red>
+        <green>18</green>
+        <blue>174</blue>
        </color>
       </brush>
      </colorrole>
@@ -288,6 +297,15 @@
         <red>0</red>
         <green>0</green>
         <blue>0</blue>
+       </color>
+      </brush>
+     </colorrole>
+     <colorrole role="Highlight">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>198</red>
+        <green>18</green>
+        <blue>174</blue>
        </color>
       </brush>
      </colorrole>
@@ -517,6 +535,18 @@
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
+        <widget class="QSlider" name="horizontalSlider">
+         <property name="styleSheet">
+          <string notr="true">QHorizontalSlider{
+	color: &quot;#ff00ff&quot;;
+}</string>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Orientation::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QLabel" name="label">
          <property name="text">
           <string>%</string>
@@ -524,14 +554,16 @@
         </widget>
        </item>
        <item>
-        <widget class="QSlider" name="horizontalSlider">
-         <property name="orientation">
-          <enum>Qt::Orientation::Horizontal</enum>
-         </property>
-        </widget>
-       </item>
-       <item>
         <widget class="QPushButton" name="pushButton">
+         <property name="styleSheet">
+          <string notr="true">QPushButton{
+	border-color: 2px solid #ff00ff;
+	background: &quot;transparent&quot;;
+	color: &quot;#ff00ff&quot;;
+	font-weight: 600;
+	padding: 8px 30px;
+}</string>
+         </property>
          <property name="text">
           <string>Mute</string>
          </property>
@@ -554,7 +586,7 @@
      <item>
       <widget class="QLabel" name="label_2">
        <property name="text">
-        <string>Devices</string>
+        <string>Outputs</string>
        </property>
       </widget>
      </item>
